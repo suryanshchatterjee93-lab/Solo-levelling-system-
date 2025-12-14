@@ -210,9 +210,6 @@ function attemptBoss(){
     notify('Boss Failed. Train More.');
   }
 }
-  saveGame(); updateUI();
-}
-
 /* ================= UI ================= */
 function updateUI(){
   document.getElementById('level').innerText='LEVEL '+level+' • EXP '+exp+'/'+expMax;
@@ -237,6 +234,7 @@ for(var q in dailyQuests){
 </body>
 
 </html>
+
 
 
 
