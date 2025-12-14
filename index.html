@@ -85,6 +85,7 @@
 
 <script>
 /* ================= CORE STATE ================= */
+var lastBossDate = localStorage.getItem('lastBossDate') || null;
 var baseStats = { str:1, end:1, agi:1, int:1, wil:1 };
 var level = 1, exp = 0, expMax = 100;
 var streak = 0, multiplier = 1;
@@ -192,9 +193,25 @@ function completeBonus(stat){
 }
 
 function attemptBoss(){
-  if(new Date().getDay()!==0||bossDefeated) return;
-  if(baseStats.str>=5&&baseStats.end>=5&&baseStats.wil>=5){
-    bossDefeated=true; gainExp(50);
+  var day = new Date().getDay();
+  if(day !== 0){ // Boss only available on Sunday
+    notify('No Boss Available today.');
+    return;
+  }
+  if(bossDefeated){
+    notify('Boss already defeated this week.');
+    return;
+  }
+  if(baseStats.str>=5 && baseStats.end>=5 && baseStats.wil>=5){
+    bossDefeated = true;
+    gainExp(50);
+    notify('BOSS DEFEATED!');
+    saveGame();
+    updateUI();
+  } else {
+    notify('Boss Failed. Train More.');
+  }
+}
   }
   saveGame(); updateUI();
 }
@@ -223,4 +240,5 @@ for(var q in dailyQuests){
 </body>
 
 </html>
+
 
