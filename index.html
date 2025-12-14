@@ -246,21 +246,27 @@ function checkWeeklyBossReset(){
 }
 
 /* ================= GAME LOGIC ================= */
-function gainExp(amount){
+function gainExp(amount) {
   exp += Math.floor(amount * multiplier);
 
-  while(exp >= expMax){
+  while (exp >= expMax) {
     exp -= expMax;
     level++;
     notify('LEVEL UP → ' + level);
 
-    if(level >= 150 && !shadowMonarchUnlocked){
+    // Update UI immediately to refresh glow
+    updateUI();
+
+    // Check Shadow Monarch unlock
+    if (level >= 150 && !shadowMonarchUnlocked) {
       shadowMonarchUnlocked = true;
       skillFlags.shadowDominion = true;
-      unlockAchievement('shadowMonarch','The Monarch Awakens');
+      notify('BLACK HEART ACTIVATED. SHADOW MONARCH ASCENSION.');
       multiplier = Math.min(multiplier + 0.25, 3);
     }
   }
+
+  // Save and refresh UI at the end
   saveGame();
   updateUI();
 }
@@ -323,32 +329,28 @@ function attemptBoss(){
 }
 
 /* ================= UI ================= */
-function updateUI(){
-  document.getElementById('level').innerText =
-    'LEVEL ' + level + ' • EXP ' + exp + '/' + expMax;
+function updateUI() {
+  // LEVEL & TITLE
+  document.getElementById('level').innerText = 'LEVEL ' + level + ' • EXP ' + exp + '/' + expMax;
+  document.getElementById('title').innerText = shadowMonarchUnlocked ? 'SHADOW MONARCH' : 'HUMAN';
 
-  document.getElementById('title').innerText =
-    shadowMonarchUnlocked ? 'SHADOW MONARCH' : 'HUMAN';
-
-  for(var s in baseStats){
+  // STATS
+  for (var s in baseStats) {
     document.getElementById(s).innerText = baseStats[s];
   }
 
-  document.getElementById('streakBox').innerText =
-    'STREAK ' + streak + ' • x' + multiplier.toFixed(1);
+  // STREAK & MULTIPLIER
+  document.getElementById('streakBox').innerText = 'STREAK ' + streak + ' • x' + multiplier.toFixed(1);
 
-  document.getElementById('skills').innerText =
-    Object.keys(skillFlags).join(' • ') || 'None';
+  // SKILLS
+  document.getElementById('skills').innerText = Object.keys(skillFlags).join(' • ') || 'None';
 
-  document.getElementById('boss').innerText =
-    bossDefeated ? bossTask.name + '\n[BOSS DEFEATED]' :
-    bossTask.name + '\n' + bossTask.description;
+  // PHASE COLOR
+  var phase = getPhase(level);
+  document.documentElement.style.setProperty('--glow', phase.color);
 
-  document.getElementById('attemptBossBtn').disabled =
-    bossAttemptedThisWeek || bossDefeated;
-
-  document.getElementById('achievements').innerText =
-    Object.values(achievements).join(' • ') || 'None';
+  // ACHIEVEMENTS (optional)
+  document.getElementById('achievements').innerText = Object.values(achievements).join(' • ') || 'None';
 }
 
 /* ================= INIT ================= */
@@ -361,6 +363,7 @@ updateUI();
 </body>
 
 </html>
+
 
 
 
