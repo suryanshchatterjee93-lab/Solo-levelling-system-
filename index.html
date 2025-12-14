@@ -120,8 +120,6 @@ function loadGame(){
   shadowMonarchUnlocked=d.shadowMonarchUnlocked||false;
 }
 /* ================= WEEKLY BOSS RESET ================= */
-var lastBossDate = localStorage.getItem('lastBossDate') || null;
-
 function checkWeeklyBossReset(){
   var today = new Date();
   // Week number (ISO week starting Monday)
@@ -239,6 +237,7 @@ for(var q in dailyQuests){
 </body>
 
 </html>
+
 
 
 
