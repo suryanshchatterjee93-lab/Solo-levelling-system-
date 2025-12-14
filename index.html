@@ -90,6 +90,7 @@ var level = 1, exp = 0, expMax = 100;
 var streak = 0, multiplier = 1;
 var bossDefeated = false;
 var dailyQuests = { workout:false, study:false, meditation:false };
+var lastResetDate = localStorage.getItem('lastResetDate') || null;
 var skillFlags = {};
 var shadowMonarchUnlocked = false;
 
@@ -131,7 +132,23 @@ function log(t){
   '['+new Date().toLocaleTimeString()+'] '+t+'<br>' +
   document.getElementById('history').innerHTML;
 }
+function checkDailyResetByDate(){
+  var today = new Date().toDateString();
 
+  if(lastResetDate !== today){
+    for(var key in dailyQuests){
+      dailyQuests[key] = false;
+      var btn = document.getElementById('q-' + key);
+      if(btn) btn.disabled = false;
+    }
+
+    bossDefeated = false;
+    lastResetDate = today;
+    localStorage.setItem('lastResetDate', today);
+
+    notify('New day detected. Daily quests reset.');
+  }
+}
 /* ================= GAME LOGIC ================= */
 function gainExp(a){
   exp+=Math.floor(a*multiplier);
@@ -178,6 +195,7 @@ function updateUI(){
 
 /* ================= INIT ================= */
 loadGame();
+checkDailyResetByDate();
 updateUI();
 for(var q in dailyQuests){
   if(dailyQuests[q]){
@@ -187,4 +205,5 @@ for(var q in dailyQuests){
 }
 </script>
 </body>
+
 </html>
