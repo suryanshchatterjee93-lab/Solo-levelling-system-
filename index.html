@@ -82,6 +82,11 @@
   </div>
 
   <div class="panel">
+  <strong>ACHIEVEMENTS</strong>
+  <div class="system-msg" id="achievements"></div>
+  </div>
+  
+  <div class="panel">
     <strong>PENALTY ZONE</strong>
     <div class="system-msg" id="penalty"></div>
   </div>
@@ -99,63 +104,79 @@
 var baseStats = { str:1, end:1, agi:1, int:1, wil:1 };
 var level = 1, exp = 0, expMax = 100;
 var streak = 0, multiplier = 1;
-var bossDefeated = false;
+
 var dailyQuests = { workout:false, study:false, meditation:false };
-var skillFlags = {};
-var shadowMonarchUnlocked = false;
+
+var bossDefeated = false;
 var bossAttemptedThisWeek = localStorage.getItem('bossAttemptedThisWeek') === 'true';
 var bossTasks = JSON.parse(localStorage.getItem('bossTasks')) || { pushups:false, squats:false, run:false };
 var lastBossDate = localStorage.getItem('lastBossDate') || null;
 var lastResetDate = localStorage.getItem('lastResetDate') || null;
 var lastDayCompletedAll = false;
 
+var skillFlags = {};
+var shadowMonarchUnlocked = false;
+
+/* ===== ACHIEVEMENTS ===== */
+var achievements = {};
+
+/* ================= BOSS DATA ================= */
 var bossTask = {
   name: "Weekly Boss: Shadow Fiend",
-  description: "Complete all tasks to defeat the Shadow Fiend:\n- 100 Push-ups\n- 100 Squats\n- 5 km Run"
+  description:
+    "Complete all tasks to defeat the Shadow Fiend:\n" +
+    "- 100 Push-ups\n" +
+    "- 100 Squats\n" +
+    "- 5 km Run"
 };
 
 /* ================= SAVE / LOAD ================= */
 function saveGame(){
   localStorage.setItem('irlSystemSave', JSON.stringify({
-    baseStats: baseStats,
-    level: level,
-    exp: exp,
-    expMax: expMax,
-    streak: streak,
-    multiplier: multiplier,
-    bossDefeated: bossDefeated,
-    dailyQuests: dailyQuests,
-    skillFlags: skillFlags,
-    shadowMonarchUnlocked: shadowMonarchUnlocked,
-    lastDayCompletedAll: lastDayCompletedAll
+    baseStats,
+    level,
+    exp,
+    expMax,
+    streak,
+    multiplier,
+    dailyQuests,
+    bossDefeated,
+    skillFlags,
+    shadowMonarchUnlocked,
+    achievements,
+    lastDayCompletedAll
   }));
   localStorage.setItem('bossTasks', JSON.stringify(bossTasks));
   localStorage.setItem('bossAttemptedThisWeek', bossAttemptedThisWeek ? 'true' : 'false');
+  localStorage.setItem('lastBossDate', lastBossDate);
+  localStorage.setItem('lastResetDate', lastResetDate);
 }
 
 function loadGame(){
   var raw = localStorage.getItem('irlSystemSave');
   if(!raw) return;
   var d = JSON.parse(raw);
+
   baseStats = d.baseStats || baseStats;
   level = d.level || level;
   exp = d.exp || exp;
   expMax = d.expMax || expMax;
   streak = d.streak || streak;
   multiplier = d.multiplier || multiplier;
-  bossDefeated = d.bossDefeated || false;
   dailyQuests = d.dailyQuests || dailyQuests;
-  skillFlags = d.skillFlags || skillFlags;
+  bossDefeated = d.bossDefeated || false;
+  skillFlags = d.skillFlags || {};
   shadowMonarchUnlocked = d.shadowMonarchUnlocked || false;
+  achievements = d.achievements || {};
   lastDayCompletedAll = d.lastDayCompletedAll || false;
 }
 
-/* ================= NOTIFICATIONS ================= */
+/* ================= NOTIFY / LOG ================= */
 function notify(msg){
   var n = document.getElementById('notification');
   n.innerText = msg;
   n.style.display = 'block';
-  setTimeout(()=>{ n.style.display='none'; }, 3500);
+  setTimeout(()=>n.style.display='none',3500);
   log(msg);
 }
 
@@ -164,24 +185,32 @@ function log(msg){
   h.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}<br>` + h.innerHTML;
 }
 
+/* ================= ACHIEVEMENTS ================= */
+function unlockAchievement(id, title){
+  if(achievements[id]) return;
+  achievements[id] = title;
+  notify('🏆 ACHIEVEMENT UNLOCKED: ' + title);
+  saveGame();
+}
+
 /* ================= DAILY RESET ================= */
 function allDailyQuestsCompleted(){
-  for(var q in dailyQuests){
-    if(!dailyQuests[q]) return false;
-  }
-  return true;
+  return Object.values(dailyQuests).every(Boolean);
 }
-  function checkDailyResetByDate(){
+
+function checkDailyResetByDate(){
   var today = new Date().toDateString();
 
   if(lastResetDate !== today){
-
-    // evaluate yesterday
-    if(lastResetDate !== null){
+    if(lastResetDate){
       if(allDailyQuestsCompleted()){
         streak++;
         multiplier = Math.min(multiplier + 0.1, 3);
         notify('STREAK CONTINUES → ' + streak);
+
+        if(streak === 7){
+          unlockAchievement('streak7','Unbroken Will (7-Day Streak)');
+        }
       } else {
         streak = 0;
         multiplier = 1;
@@ -189,10 +218,9 @@ function allDailyQuestsCompleted(){
       }
     }
 
-    // reset dailies
-    for(var key in dailyQuests){
-      dailyQuests[key] = false;
-      var btn = document.getElementById('q-' + key);
+    for(var q in dailyQuests){
+      dailyQuests[q] = false;
+      var btn = document.getElementById('q-' + q);
       if(btn) btn.disabled = false;
     }
 
@@ -206,28 +234,30 @@ function checkWeeklyBossReset(){
   var today = new Date();
   var onejan = new Date(today.getFullYear(), 0, 1);
   var weekNum = Math.ceil((((today - onejan)/86400000) + onejan.getDay() + 1)/7);
-  
+
   if(lastBossDate != weekNum){
     bossDefeated = false;
-    bossTasks = { pushups:false, squats:false, run:false };
     bossAttemptedThisWeek = false;
+    bossTasks = { pushups:false, squats:false, run:false };
     lastBossDate = weekNum;
-    localStorage.setItem('lastBossDate', weekNum);
     notify('Weekly Boss is now available!');
+    saveGame();
   }
 }
 
 /* ================= GAME LOGIC ================= */
 function gainExp(amount){
   exp += Math.floor(amount * multiplier);
+
   while(exp >= expMax){
     exp -= expMax;
     level++;
     notify('LEVEL UP → ' + level);
+
     if(level >= 150 && !shadowMonarchUnlocked){
       shadowMonarchUnlocked = true;
       skillFlags.shadowDominion = true;
-      notify('BLACK HEART ACTIVATED. SHADOW MONARCH ASCENSION.');
+      unlockAchievement('shadowMonarch','The Monarch Awakens');
       multiplier = Math.min(multiplier + 0.25, 3);
     }
   }
@@ -237,11 +267,14 @@ function gainExp(amount){
 
 function completeQuest(id, stat){
   if(dailyQuests[id]) return;
+
   dailyQuests[id] = true;
-  var btn = document.getElementById('q-' + id);
-  if(btn) btn.disabled = true;
   baseStats[stat]++;
   gainExp(20);
+
+  unlockAchievement('firstQuest','First Step Taken');
+
+  document.getElementById('q-' + id).disabled = true;
 }
 
 function completeBonus(stat){
@@ -251,80 +284,71 @@ function completeBonus(stat){
 
 function completeBossTask(task){
   if(bossTasks[task]) return;
+
   bossTasks[task] = true;
-  var btn = document.getElementById('boss-task-' + task);
-  if(btn) btn.disabled = true;
-  notify(task.charAt(0).toUpperCase() + task.slice(1) + ' completed!');
+  document.getElementById('boss-task-' + task).disabled = true;
+  notify(task.toUpperCase() + ' completed');
+
+  if(bossTasks.pushups && bossTasks.squats && bossTasks.run){
+    unlockAchievement('bossTasks','Trial of Endurance');
+  }
+
   saveGame();
   updateUI();
 }
 
 function attemptBoss(){
-  var bossBtn = document.getElementById('attemptBossBtn');
-  if(bossBtn) bossBtn.disabled = true;
-
-  var day = new Date().getDay();
-  if(day !== 0){
-    notify('No Boss Available today.');
-    if(bossBtn) bossBtn.disabled = bossAttemptedThisWeek || bossDefeated;
-    return;
-  }
-
-  if(bossAttemptedThisWeek){
-    notify('You already attempted the boss this week.');
-    return;
-  }
+  if(bossAttemptedThisWeek) return;
 
   bossAttemptedThisWeek = true;
-  localStorage.setItem('bossAttemptedThisWeek', 'true');
 
-  if(baseStats.str >= 5 && baseStats.end >= 5 && baseStats.wil >= 5 &&
-     bossTasks.pushups && bossTasks.squats && bossTasks.run){
-       bossDefeated = true;
-       gainExp(50);
-       notify('BOSS DEFEATED!');
+  if(
+    bossTasks.pushups &&
+    bossTasks.squats &&
+    bossTasks.run &&
+    baseStats.str >= 5 &&
+    baseStats.end >= 5 &&
+    baseStats.wil >= 5
+  ){
+    bossDefeated = true;
+    gainExp(50);
+    unlockAchievement('firstBoss','Shadow Fiend Slayer');
+    notify('BOSS DEFEATED');
   } else {
-       notify('Boss Failed. Train More!');
+    notify('Boss Failed. Train More.');
   }
 
   saveGame();
   updateUI();
 }
 
-/* ================= UI UPDATES ================= */
+/* ================= UI ================= */
 function updateUI(){
-  // Level & Title
-  document.getElementById('level').innerText = 'LEVEL ' + level + ' • EXP ' + exp + '/' + expMax;
-  document.getElementById('title').innerText = shadowMonarchUnlocked ? 'SHADOW MONARCH' : 'HUMAN';
-  
-  // Stats
+  document.getElementById('level').innerText =
+    'LEVEL ' + level + ' • EXP ' + exp + '/' + expMax;
+
+  document.getElementById('title').innerText =
+    shadowMonarchUnlocked ? 'SHADOW MONARCH' : 'HUMAN';
+
   for(var s in baseStats){
     document.getElementById(s).innerText = baseStats[s];
   }
 
-  // Streak & Skills
-  document.getElementById('streakBox').innerText = 'STREAK ' + streak + ' • x' + multiplier.toFixed(1);
-  document.getElementById('skills').innerText = Object.keys(skillFlags).join(' • ') || 'None';
+  document.getElementById('streakBox').innerText =
+    'STREAK ' + streak + ' • x' + multiplier.toFixed(1);
 
-  // Boss Panel
-  var bossDiv = document.getElementById('boss');
-  bossDiv.innerText = bossDefeated ? bossTask.name + "\n[BOSS DEFEATED]" : bossTask.name + "\n" + bossTask.description;
+  document.getElementById('skills').innerText =
+    Object.keys(skillFlags).join(' • ') || 'None';
 
-  // Disable boss task buttons if done
-  for(var task in bossTasks){
-    var btn = document.getElementById('boss-task-' + task);
-    if(btn) btn.disabled = bossTasks[task];
-  }
+  document.getElementById('boss').innerText =
+    bossDefeated ? bossTask.name + '\n[BOSS DEFEATED]' :
+    bossTask.name + '\n' + bossTask.description;
 
-  // Disable Attempt Boss button if defeated or attempted
-  var bossBtn = document.getElementById('attemptBossBtn');
-  if(bossBtn) bossBtn.disabled = bossAttemptedThisWeek || bossDefeated;
+  document.getElementById('attemptBossBtn').disabled =
+    bossAttemptedThisWeek || bossDefeated;
 
-  // Disable daily quest buttons if completed
-  for(var q in dailyQuests){
-    var btn = document.getElementById('q-' + q);
-    if(btn) btn.disabled = dailyQuests[q];
-  }
+  document.getElementById('achievements').innerText =
+    Object.values(achievements).join(' • ') || 'None';
 }
 
 /* ================= INIT ================= */
@@ -333,10 +357,11 @@ checkDailyResetByDate();
 checkWeeklyBossReset();
 updateUI();
 </script>
-
+  
 </body>
 
 </html>
+
 
 
 
