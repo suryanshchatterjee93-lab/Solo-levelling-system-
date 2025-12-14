@@ -312,6 +312,18 @@ function getPhase(lv){
   }
   return { name: 'PURPLE', color: '#b266ff' };
 }
+function getTitle() {
+  if (level >= 150) return 'SHADOW MONARCH';
+
+  if (level >= 30) return 'S-RANK HUNTER';
+  if (level >= 25) return 'A-RANK HUNTER';
+  if (level >= 20) return 'B-RANK HUNTER';
+  if (level >= 15) return 'C-RANK HUNTER';
+  if (level >= 10) return 'D-RANK HUNTER';
+  if (level >= 5)  return 'E-RANK HUNTER';
+
+  return 'HUMAN';
+}
   
 function attemptBoss(){
   if(bossAttemptedThisWeek) return;
@@ -343,7 +355,7 @@ function updateUI() {
   // LEVEL & TITLE
   document.getElementById('level').innerText = 'LEVEL ' + level + ' • EXP ' + exp + '/' + expMax;
   document.getElementById('title').innerText =
-  shadowMonarchUnlocked ? 'SHADOW MONARCH' : 'HUMAN';
+  getTitle() + ' • ' + phase.name;
 
   // STATS
   for (var s in baseStats) {
@@ -379,6 +391,7 @@ updateUI();
 </body>
 
 </html>
+
 
 
 
