@@ -94,6 +94,13 @@ var dailyQuests = { workout:false, study:false, meditation:false };
 var lastResetDate = localStorage.getItem('lastResetDate') || null;
 var skillFlags = {};
 var shadowMonarchUnlocked = false;
+var bossTask = {
+  name: "Weekly Boss: Shadow Fiend",
+  description: "Defeat the Shadow Fiend by completing these tasks:\n" +
+               "- 100 Push-ups\n" +
+               "- 100 Squats\n" +
+               "- 5 km Run"
+};
 
 /* ================= SAVE / LOAD ================= */
 function saveGame(){
@@ -217,8 +224,16 @@ function updateUI(){
   var s; for(s in baseStats){ document.getElementById(s).innerText=baseStats[s]; }
   document.getElementById('streakBox').innerText='STREAK '+streak+' • x'+multiplier.toFixed(1);
   document.getElementById('skills').innerText=Object.keys(skillFlags).join(' • ')||'None';
+  updateBossUI();
 }
-
+function updateBossUI(){
+  var bossDiv = document.getElementById('boss');
+  if(!bossDefeated){
+    bossDiv.innerText = bossTask.name + "\n" + bossTask.description;
+  } else {
+    bossDiv.innerText = bossTask.name + "\n[BOSS DEFEATED]";
+  }
+}
 /* ================= INIT ================= */
 loadGame();
 checkDailyResetByDate();
@@ -234,6 +249,7 @@ for(var q in dailyQuests){
 </body>
 
 </html>
+
 
 
 
