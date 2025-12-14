@@ -354,7 +354,9 @@ function attemptBoss(){
 function updateUI() {
   // LEVEL & TITLE
   document.getElementById('level').innerText = 'LEVEL ' + level + ' • EXP ' + exp + '/' + expMax;
-  document.getElementById('title').innerText =
+  var phase = getPhase(level);
+
+document.getElementById('title').innerText =
   getTitle() + ' • ' + phase.name;
 
   // STATS
@@ -391,6 +393,7 @@ updateUI();
 </body>
 
 </html>
+
 
 
 
