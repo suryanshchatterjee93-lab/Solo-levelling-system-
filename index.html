@@ -352,12 +352,15 @@ function attemptBoss(){
 
 /* ================= UI ================= */
 function updateUI() {
-  // LEVEL & TITLE
-  document.getElementById('level').innerText = 'LEVEL ' + level + ' • EXP ' + exp + '/' + expMax;
+  // PHASE (define first)
   var phase = getPhase(level);
 
-document.getElementById('title').innerText =
-  getTitle() + ' • ' + phase.name;
+  // LEVEL & TITLE
+  document.getElementById('level').innerText =
+    'LEVEL ' + level + ' • EXP ' + exp + '/' + expMax;
+
+  document.getElementById('title').innerText =
+    getTitle() + ' • ' + phase.name;
 
   // STATS
   for (var s in baseStats) {
@@ -365,24 +368,26 @@ document.getElementById('title').innerText =
   }
 
   // STREAK & MULTIPLIER
-  document.getElementById('streakBox').innerText = 'STREAK ' + streak + ' • x' + multiplier.toFixed(1);
+  document.getElementById('streakBox').innerText =
+    'STREAK ' + streak + ' • x' + multiplier.toFixed(1);
 
   // SKILLS
-  document.getElementById('skills').innerText = Object.keys(skillFlags).join(' • ') || 'None';
+  document.getElementById('skills').innerText =
+    Object.keys(skillFlags).join(' • ') || 'None';
 
   // PHASE COLOR
-  var phase = getPhase(level);
   document.documentElement.style.setProperty('--glow', phase.color);
 
-  // ACHIEVEMENTS (optional)
-  document.getElementById('achievements').innerText = Object.values(achievements).join(' • ') || 'None';
-  
+  // ACHIEVEMENTS
+  document.getElementById('achievements').innerText =
+    Object.values(achievements).join(' • ') || 'None';
+
+  // BOSS BUTTON DISABLE
   for (var t in bossTasks) {
-  var b = document.getElementById('boss-task-' + t);
-  if (b && bossTasks[t]) b.disabled = true;
+    var b = document.getElementById('boss-task-' + t);
+    if (b && bossTasks[t]) b.disabled = true;
   }
 }
-
 /* ================= INIT ================= */
 loadGame();
 checkDailyResetByDate();
@@ -393,6 +398,7 @@ updateUI();
 </body>
 
 </html>
+
 
 
 
