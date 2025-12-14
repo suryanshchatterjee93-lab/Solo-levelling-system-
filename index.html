@@ -118,7 +118,22 @@ function loadGame(){
   skillFlags=d.skillFlags||skillFlags;
   shadowMonarchUnlocked=d.shadowMonarchUnlocked||false;
 }
+/* ================= WEEKLY BOSS RESET ================= */
+var lastBossDate = localStorage.getItem('lastBossDate') || null;
 
+function checkWeeklyBossReset(){
+  var today = new Date();
+  // Week number (ISO week starting Monday)
+  var onejan = new Date(today.getFullYear(),0,1);
+  var weekNum = Math.ceil((((today - onejan) / 86400000) + onejan.getDay()+1)/7);
+
+  if(lastBossDate != weekNum){
+    bossDefeated = false;          // Reset boss
+    lastBossDate = weekNum;
+    localStorage.setItem('lastBossDate', weekNum);
+    notify('Weekly Boss is now available!');
+  }
+}
 /* ================= UTIL ================= */
 function notify(t){
   var n=document.getElementById('notification');
@@ -196,6 +211,7 @@ function updateUI(){
 /* ================= INIT ================= */
 loadGame();
 checkDailyResetByDate();
+checkWeeklyBossReset();
 updateUI();
 for(var q in dailyQuests){
   if(dailyQuests[q]){
@@ -207,3 +223,4 @@ for(var q in dailyQuests){
 </body>
 
 </html>
+
