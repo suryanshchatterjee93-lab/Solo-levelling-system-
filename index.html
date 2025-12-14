@@ -20,6 +20,24 @@
     .system-msg { text-align:center; font-size:0.85em; color:var(--glow); margin-top:10px; }
     .log { max-height:120px; overflow-y:auto; font-size:0.75em; background:rgba(0,0,0,0.4); padding:6px; border-radius:8px; margin-top:10px; }
     .notification { position:fixed; top:20px; right:20px; background:rgba(0,0,0,0.85); color:#fff; padding:12px 18px; border-radius:10px; box-shadow:0 0 20px var(--glow); font-weight:600; display:none; z-index:1000; }
+    body.shadow-monarch {
+  background: radial-gradient(circle at top, #000000, #000000);
+  color: #b300ff;
+}
+
+body.shadow-monarch .container {
+  background: rgba(0, 0, 0, 0.95);
+  box-shadow: 0 0 40px #6a00ff;
+}
+
+body.shadow-monarch button {
+  background: linear-gradient(135deg, #6a00ff, #000000);
+  color: #fff;
+}
+
+body.shadow-monarch .panel {
+  border-color: #6a00ff;
+}
   </style>
 </head>
 <body>
@@ -391,6 +409,12 @@ function updateUI() {
     var b = document.getElementById('boss-task-' + t);
     if (b && bossTasks[t]) b.disabled = true;
   }
+  // SHADOW MONARCH UI MODE
+if (level >= 150) {
+  document.body.classList.add('shadow-monarch');
+} else {
+  document.body.classList.remove('shadow-monarch');
+  }
 }
 /* ================= INIT ================= */
 loadGame();
@@ -402,6 +426,7 @@ updateUI();
 </body>
 
 </html>
+
 
 
 
