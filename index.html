@@ -107,6 +107,7 @@ var bossAttemptedThisWeek = localStorage.getItem('bossAttemptedThisWeek') === 't
 var bossTasks = JSON.parse(localStorage.getItem('bossTasks')) || { pushups:false, squats:false, run:false };
 var lastBossDate = localStorage.getItem('lastBossDate') || null;
 var lastResetDate = localStorage.getItem('lastResetDate') || null;
+var lastDayCompletedAll = false;
 
 var bossTask = {
   name: "Weekly Boss: Shadow Fiend",
@@ -126,6 +127,7 @@ function saveGame(){
     dailyQuests: dailyQuests,
     skillFlags: skillFlags,
     shadowMonarchUnlocked: shadowMonarchUnlocked
+    lastDayCompletedAll: lastDayCompletedAll
   }));
   localStorage.setItem('bossTasks', JSON.stringify(bossTasks));
   localStorage.setItem('bossAttemptedThisWeek', bossAttemptedThisWeek ? 'true' : 'false');
@@ -145,6 +147,7 @@ function loadGame(){
   dailyQuests = d.dailyQuests || dailyQuests;
   skillFlags = d.skillFlags || skillFlags;
   shadowMonarchUnlocked = d.shadowMonarchUnlocked || false;
+  lastDayCompletedAll = d.lastDayCompletedAll || false;
 }
 
 /* ================= NOTIFICATIONS ================= */
@@ -162,17 +165,39 @@ function log(msg){
 }
 
 /* ================= DAILY RESET ================= */
-function checkDailyResetByDate(){
+function allDailyQuestsCompleted(){
+  for(var q in dailyQuests){
+    if(!dailyQuests[q]) return false;
+  }
+  return true;
+}
+  function checkDailyResetByDate(){
   var today = new Date().toDateString();
+
   if(lastResetDate !== today){
-    lastResetDate = today;
-    localStorage.setItem('lastResetDate', today);
+
+    // evaluate yesterday
+    if(lastResetDate !== null){
+      if(allDailyQuestsCompleted()){
+        streak++;
+        multiplier = Math.min(multiplier + 0.1, 3);
+        notify('STREAK CONTINUES → ' + streak);
+      } else {
+        streak = 0;
+        multiplier = 1;
+        notify('STREAK BROKEN');
+      }
+    }
+
+    // reset dailies
     for(var key in dailyQuests){
       dailyQuests[key] = false;
       var btn = document.getElementById('q-' + key);
       if(btn) btn.disabled = false;
     }
-    notify('New day detected. Daily quests reset.');
+
+    lastResetDate = today;
+    saveGame();
   }
 }
 
@@ -312,6 +337,7 @@ updateUI();
 </body>
 
 </html>
+
 
 
 
