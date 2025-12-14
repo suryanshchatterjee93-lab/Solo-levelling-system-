@@ -302,7 +302,19 @@ function completeBossTask(task){
   saveGame();
   updateUI();
 }
-
+function getPhase(lv){
+  if (lv < 5) {
+    return { name: 'BLUE', color: '#4fc3ff' };
+  }
+  if (lv < 10) {
+    return { name: 'ORANGE', color: '#ff9800' };
+  }
+  if (lv < 20) {
+    return { name: 'RED', color: '#ff3b3b' };
+  }
+  return { name: 'PURPLE', color: '#b266ff' };
+}
+  
 function attemptBoss(){
   if(bossAttemptedThisWeek) return;
 
@@ -363,6 +375,7 @@ updateUI();
 </body>
 
 </html>
+
 
 
 
