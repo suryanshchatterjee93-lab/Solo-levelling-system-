@@ -315,7 +315,11 @@ function getPhase(lv){
 function getTitle() {
   if (level >= 150) return 'SHADOW MONARCH';
 
+  if (level >= 70) return 'NATIONAL LEVEL HUNTER';
+  if (level >= 50) return 'SSS-RANK HUNTER';
+  if (level >= 40) return 'SS-RANK HUNTER';
   if (level >= 30) return 'S-RANK HUNTER';
+
   if (level >= 25) return 'A-RANK HUNTER';
   if (level >= 20) return 'B-RANK HUNTER';
   if (level >= 15) return 'C-RANK HUNTER';
@@ -398,6 +402,7 @@ updateUI();
 </body>
 
 </html>
+
 
 
 
